@@ -55,12 +55,10 @@ app.use((err, req, res, next) => {
 async function startServer() {
   try {
     await db.initialize();
-    console.log('Database initialized successfully');
     
     app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-      console.log(`Access the application at: http://localhost:${PORT}`);
-      console.log(`Access the matching interface at: http://localhost:${PORT}/matching`);
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`📱 App: http://localhost:${PORT}`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);

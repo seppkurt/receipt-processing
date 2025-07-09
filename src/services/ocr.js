@@ -33,15 +33,13 @@ class OCRService {
 
   async processWithLlamaOCR(imagePath) {
     try {
-      console.log('🔍 Using API key starting with:', this.apiKey.substring(0, 4) + '...');
-      console.log('📁 Image path:', imagePath);
-      console.log('🔧 Model:', 'Llama-3.2-11B-Vision');
+      console.log('🔍 Processing with Llama OCR...');
+      console.log('📁 Image:', path.basename(imagePath));
 
       // Check if file exists and get file info
       if (fs.existsSync(imagePath)) {
         const stats = fs.statSync(imagePath);
-        console.log('📊 File size:', stats.size, 'bytes');
-        console.log('📅 File modified:', stats.mtime);
+        console.log('📊 Size:', Math.round(stats.size / 1024), 'KB');
       } else {
         console.error('❌ Image file does not exist:', imagePath);
         throw new Error('Image file not found');
@@ -79,35 +77,15 @@ class OCRService {
 Please ensure all items are listed in the table format above, even if some prices are missing.`
       });
 
-      console.log('✅ Llama OCR processing completed');
-      console.log('📄 Raw markdown length:', markdown ? markdown.length : 0);
-      console.log('📄 Raw markdown preview:', markdown ? markdown.substring(0, 100) + '...' : 'empty');
+      console.log('✅ OCR completed');
+      console.log('📄 Text length:', markdown ? markdown.length : 0, 'chars');
       
       return this.parseMarkdown(markdown);
     } catch (error) {
-      console.error('❌ Llama OCR processing failed:');
-      console.error('   Error type:', error.constructor.name);
-      console.error('   Error message:', error.message);
-      console.error('   Error status:', error.status);
-      
-      // Log full error details if available
-      if (error.error) {
-        console.error('   API Error details:', JSON.stringify(error.error, null, 2));
-      }
-      
-      if (error.headers) {
-        console.error('   Response headers:', JSON.stringify(error.headers, null, 2));
-      }
-      
-      if (error.response) {
-        console.error('   Response body:', JSON.stringify(error.response, null, 2));
-      }
-      
-      // Log the full error object for debugging
-      console.error('   Full error object:', JSON.stringify(error, null, 2));
+      console.error('❌ OCR failed:', error.message);
       
       // Fallback to mock OCR if real OCR fails
-      console.log('🔄 Falling back to mock OCR...');
+      console.log('🔄 Using mock OCR...');
       return this.processWithMockOCR();
     }
   }
@@ -128,8 +106,6 @@ Date: 2024-01-15`;
   }
 
   parseMarkdown(markdown) {
-    console.log('Parsing markdown:', markdown.substring(0, 200) + '...');
-    
     const lines = markdown.split('\n');
     const result = {
       receipt: {
@@ -165,21 +141,7 @@ Date: 2024-01-15`;
       this.extractItemsFallback(markdown, result);
     }
 
-    console.log('OCR result:', {
-      receipt: {
-        metadata: result.receipt.metadata,
-        store: result.receipt.store,
-        items: result.receipt.items.length,
-        totals: result.receipt.totals,
-        payment: result.receipt.payment
-      },
-      ocr_data: {
-        raw_markdown: result.ocr_data.raw_markdown.substring(0, 100) + '...',
-        confidence_score: result.ocr_data.confidence_score,
-        processing_time: result.ocr_data.processing_time
-      },
-      processing_info: result.processing_info
-    });
+    console.log('📋 Extracted:', result.receipt.items.length, 'items, Total:', result.receipt.totals.total_amount, 'EUR');
 
     return result;
   }

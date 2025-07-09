@@ -26,6 +26,9 @@ uploads/
 temp/
 tmp/
 
+# Images (receipt samples)
+images/
+
 # Logs
 logs/
 *.log

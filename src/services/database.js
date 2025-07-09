@@ -14,7 +14,6 @@ class DatabaseService {
           console.error('Error opening database:', err);
           reject(err);
         } else {
-          console.log('Database initialized successfully');
           this.createTables().then(resolve).catch(reject);
         }
       });

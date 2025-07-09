@@ -21,7 +21,6 @@ class SimpleDatabaseService {
           console.error('❌ Database connection error:', err.message);
           reject(err);
         } else {
-          console.log('✅ Connected to SQLite database');
           this.createTables().then(resolve).catch(reject);
         }
       });
@@ -105,8 +104,6 @@ class SimpleDatabaseService {
     for (const table of tables) {
       await this.run(table);
     }
-    
-    console.log('✅ Database tables created/verified');
   }
 
   async run(sql, params = []) {
@@ -158,7 +155,6 @@ class SimpleDatabaseService {
 
   async storeReceipt(receiptData, ocrData) {
     try {
-      console.log('💾 Storing receipt in database...');
       
       // Insert receipt
       const receiptSql = `
@@ -187,8 +183,6 @@ class SimpleDatabaseService {
 
       const receiptResult = await this.run(receiptSql, receiptParams);
       const receiptId = receiptResult.id;
-      
-      console.log('✅ Receipt stored with ID:', receiptId);
 
       // Insert items - now supporting items without prices
       if (receiptData.items && receiptData.items.length > 0) {

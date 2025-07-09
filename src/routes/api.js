@@ -37,45 +37,31 @@ const upload = multer({
 
 // Simple receipt processing endpoint
 router.post('/process-receipt', upload.single('receipt'), async (req, res) => {
-  console.log('🚀 Receipt processing started');
-  
   try {
     // Check if file was uploaded
     if (!req.file) {
-      console.log('❌ No file uploaded');
       return res.status(400).json({ 
         error: 'No file uploaded',
         details: 'Please select an image file to upload'
       });
     }
 
-    console.log('📁 File received:', req.file.originalname, req.file.path);
+    console.log('📄 Processing:', req.file.originalname);
 
     // Process with OCR
-    console.log('🔍 Starting OCR processing...');
     const ocrResult = await ocr.processImage(req.file.path);
-    
-    console.log('✅ OCR processing completed');
-    console.log('📊 OCR result structure:', {
-      hasReceipt: !!ocrResult.receipt,
-      hasOcrData: !!ocrResult.ocr_data,
-      hasProcessingInfo: !!ocrResult.processing_info,
-      rawMarkdownLength: ocrResult.ocr_data?.raw_markdown?.length || 0
-    });
 
     // Store in database
     await ensureDatabase();
     const dbResult = await db.storeReceipt(ocrResult.receipt, ocrResult.ocr_data);
-    console.log('💾 Database storage completed, receipt ID:', dbResult.id);
+    console.log('💾 Stored receipt ID:', dbResult.id);
 
     // Clean up uploaded file
     if (fs.existsSync(req.file.path)) {
       fs.unlinkSync(req.file.path);
-      console.log('🗑️ Temporary file cleaned up');
     }
 
     // Return the complete result
-    console.log('📤 Sending response to frontend');
     res.json({
       success: true,
       receipt: ocrResult.receipt,
@@ -86,7 +72,7 @@ router.post('/process-receipt', upload.single('receipt'), async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error processing receipt:', error);
+    console.error('❌ Error processing receipt:', error.message);
     
     // Clean up uploaded file if it exists
     if (req.file && fs.existsSync(req.file.path)) {
