@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt Details - Receipt Processor</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .receipt-detail {
+            margin-top: 2rem;
+        }
+        
+        .receipt-header {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .receipt-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .receipt-title h1 {
+            margin: 0;
+            color: #333;
+        }
+        
+        .receipt-id {
+            background: #007bff;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .receipt-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+        
+        .info-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .info-label {
+            font-weight: 500;
+            color: #666;
+        }
+        
+        .info-value {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .items-section {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .items-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .items-count {
+            background: #28a745;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        .items-table th,
+        .items-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .items-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .items-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .item-code {
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .item-price {
+            font-weight: 600;
+            color: #28a745;
+        }
+        
+        .item-matched {
+            background: #d4edda;
+            color: #155724;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        
+        .item-unmatched {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        
+        .raw-data-section {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .raw-data {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 1rem;
+            font-family: monospace;
+            font-size: 0.8rem;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #007bff;
+            text-decoration: none;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 2rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="back-link" onclick="history.back()">
+                ← Back to Receipts
+            </div>
+            <h1>🧾 Receipt Details</h1>
+            <p>Detailed information about this receipt</p>
+            <nav>
+                <a href="/" class="nav-link">🏠 Home</a>
+                <a href="/receipts" class="nav-link">📋 Receipts List</a>
+                <a href="/matching" class="nav-link">🔗 Item Matching</a>
+            </nav>
+        </header>
+
+        <main>
+            <div class="receipt-detail" id="receipt-detail">
+                <div class="loading">Loading receipt details...</div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Powered by <a href="https://llamaocr.com/" target="_blank">Llama OCR</a> and <a href="https://together.ai/" target="_blank">Together AI</a></p>
+        </footer>
+    </div>
+
+    <script>
+        // Get receipt ID from URL
+        function getReceiptId() {
+            const path = window.location.pathname;
+            const match = path.match(/\/receipt\/(\d+)/);
+            return match ? match[1] : null;
+        }
+
+        // Load receipt details
+        async function loadReceiptDetails() {
+            const receiptId = getReceiptId();
+            if (!receiptId) {
+                displayError('Invalid receipt ID');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/receipts/${receiptId}/details`);
+                const data = await response.json();
+                
+                if (data.receipt) {
+                    displayReceiptDetails(data);
+                } else {
+                    displayError('Receipt not found');
+                }
+            } catch (error) {
+                console.error('Error loading receipt details:', error);
+                displayError('Error loading receipt details. Please try again.');
+            }
+        }
+
+        function displayReceiptDetails(data) {
+            const { receipt, items } = data;
+            const container = document.getElementById('receipt-detail');
+            
+            container.innerHTML = `
+                <!-- Receipt Header -->
+                <div class="receipt-header">
+                    <div class="receipt-title">
+                        <h1>${receipt.store_name || 'Unknown Store'}</h1>
+                        <span class="receipt-id">Receipt #${receipt.id}</span>
+                    </div>
+                    
+                    <div class="receipt-info">
+                        <div class="info-section">
+                            <div class="info-item">
+                                <span class="info-label">Date:</span>
+                                <span class="info-value">${receipt.date || 'Unknown'}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Time:</span>
+                                <span class="info-value">${receipt.time || 'Unknown'}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Total Amount:</span>
+                                <span class="info-value">${formatCurrency(receipt.total_amount, receipt.currency)}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Payment Method:</span>
+                                <span class="info-value">${receipt.payment_method || 'Unknown'}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="info-section">
+                            <div class="info-item">
+                                <span class="info-label">Store Address:</span>
+                                <span class="info-value">${receipt.store_address || 'Unknown'}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Store Phone:</span>
+                                <span class="info-value">${receipt.store_phone || 'Unknown'}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Amount Paid:</span>
+                                <span class="info-value">${formatCurrency(receipt.payment_amount, receipt.currency)}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Change:</span>
+                                <span class="info-value">${formatCurrency(receipt.payment_change, receipt.currency)}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Items Section -->
+                <div class="items-section">
+                    <div class="items-header">
+                        <h2>Items (${items.length})</h2>
+                        <span class="items-count">${items.length} items</span>
+                    </div>
+                    
+                    ${items.length > 0 ? `
+                        <table class="items-table">
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Product Name</th>
+                                    <th>Quantity</th>
+                                    <th>Unit Price</th>
+                                    <th>Total Price</th>
+                                    <th>Brand</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${items.map(item => `
+                                    <tr>
+                                        <td><span class="item-code">${item.item_code || 'N/A'}</span></td>
+                                        <td>${item.product_name || 'Unknown'}</td>
+                                        <td>${item.quantity || 'N/A'}</td>
+                                        <td class="item-price">${formatCurrency(item.unit_price, receipt.currency)}</td>
+                                        <td class="item-price">${formatCurrency(item.total_price, receipt.currency)}</td>
+                                        <td>${item.brand || 'N/A'}</td>
+                                        <td>
+                                            ${item.matched ? 
+                                                '<span class="item-matched">Matched</span>' : 
+                                                '<span class="item-unmatched">Unmatched</span>'
+                                            }
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    ` : '<p>No items found in this receipt.</p>'}
+                </div>
+
+                <!-- Raw Data Section -->
+                <div class="raw-data-section">
+                    <h2>Raw OCR Data</h2>
+                    <details>
+                        <summary>View raw OCR output</summary>
+                        <pre class="raw-data">${receipt.raw_markdown || 'No raw data available'}</pre>
+                    </details>
+                </div>
+            `;
+        }
+
+        function displayError(message) {
+            document.getElementById('receipt-detail').innerHTML = `
+                <div class="error">
+                    <h3>Error</h3>
+                    <p>${message}</p>
+                    <a href="/receipts" class="btn btn-primary">Back to Receipts List</a>
+                </div>
+            `;
+        }
+
+        function formatCurrency(amount, currency = 'EUR') {
+            if (amount === null || amount === undefined) return 'N/A';
+            return new Intl.NumberFormat('de-DE', {
+                style: 'currency',
+                currency: currency || 'EUR'
+            }).format(amount);
+        }
+
+        // Load receipt details when page loads
+        document.addEventListener('DOMContentLoaded', loadReceiptDetails);
+    </script>
+</body>
+</html> 

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item Matching - Receipt Processor</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="matching.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔗 Item Matching</h1>
+            <p>Match extracted items with product catalog</p>
+            <nav>
+                <a href="/" class="nav-link">← Back to Receipt Upload</a>
+            </nav>
+        </header>
+
+        <main>
+            <!-- Statistics Dashboard -->
+            <section class="stats-dashboard">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-content">
+                            <h3 id="total-items">0</h3>
+                            <p>Total Items</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-content">
+                            <h3 id="matched-items">0</h3>
+                            <p>Matched Items</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">❓</div>
+                        <div class="stat-content">
+                            <h3 id="unmatched-items">0</h3>
+                            <p>Unmatched Items</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🏪</div>
+                        <div class="stat-content">
+                            <h3 id="total-receipts">0</h3>
+                            <p>Total Receipts</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Filter Controls -->
+            <section class="filter-controls">
+                <div class="filter-group">
+                    <label for="status-filter">Status:</label>
+                    <select id="status-filter">
+                        <option value="all">All Items</option>
+                        <option value="unmatched">Unmatched Only</option>
+                        <option value="matched">Matched Only</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="search-filter">Search:</label>
+                    <input type="text" id="search-filter" placeholder="Search items...">
+                </div>
+                <div class="filter-group">
+                    <button id="refresh-btn" class="btn btn-primary">🔄 Refresh</button>
+                </div>
+            </section>
+
+            <!-- Items Table -->
+            <section class="items-section">
+                <div class="section-header">
+                    <h2>Extracted Items</h2>
+                    <div class="table-controls">
+                        <button id="bulk-match-btn" class="btn btn-secondary" disabled>Bulk Match</button>
+                        <button id="export-btn" class="btn btn-secondary">Export CSV</button>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table class="items-table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="select-all"></th>
+                                <th>Code</th>
+                                <th>Product Name</th>
+                                <th>Quantity</th>
+                                <th>Unit Price</th>
+                                <th>Total</th>
+                                <th>Brand</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="items-table-body">
+                            <!-- Items will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Matching Modal -->
+            <div id="matching-modal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Match Item</h3>
+                        <button class="modal-close">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="item-details">
+                            <h4>Item to Match</h4>
+                            <div class="item-info">
+                                <div class="info-row">
+                                    <span class="label">Code:</span>
+                                    <span id="modal-item-code"></span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="label">Product:</span>
+                                    <span id="modal-item-name"></span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="label">Brand:</span>
+                                    <span id="modal-item-brand"></span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="label">Receipt:</span>
+                                    <span id="modal-item-receipt"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="matching-options">
+                            <h4>Matching Options</h4>
+                            
+                            <!-- Quick Match -->
+                            <div class="quick-match">
+                                <h5>Quick Match</h5>
+                                <div id="quick-match-suggestions" class="suggestions-grid">
+                                    <!-- Suggestions will be populated here -->
+                                </div>
+                            </div>
+
+                            <!-- Manual Match -->
+                            <div class="manual-match">
+                                <h5>Manual Match</h5>
+                                <div class="match-form">
+                                    <div class="form-group">
+                                        <label for="brand-select">Brand:</label>
+                                        <select id="brand-select">
+                                            <option value="">Select Brand</option>
+                                        </select>
+                                        <button type="button" id="new-brand-btn" class="btn btn-small">+ New</button>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="category-select">Category:</label>
+                                        <select id="category-select">
+                                            <option value="">Select Category</option>
+                                        </select>
+                                        <button type="button" id="new-category-btn" class="btn btn-small">+ New</button>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="product-name">Product Name:</label>
+                                        <input type="text" id="product-name" placeholder="Enter product name">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="product-description">Description:</label>
+                                        <textarea id="product-description" placeholder="Optional description"></textarea>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="unit-size">Unit Size:</label>
+                                            <input type="text" id="unit-size" placeholder="e.g., 100g">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="unit-type">Unit Type:</label>
+                                            <select id="unit-type">
+                                                <option value="">Select Type</option>
+                                                <option value="g">Grams (g)</option>
+                                                <option value="kg">Kilograms (kg)</option>
+                                                <option value="ml">Milliliters (ml)</option>
+                                                <option value="l">Liters (l)</option>
+                                                <option value="pack">Pack</option>
+                                                <option value="piece">Piece</option>
+                                                <option value="bottle">Bottle</option>
+                                                <option value="can">Can</option>
+                                                <option value="jar">Jar</option>
+                                                <option value="tube">Tube</option>
+                                                <option value="bar">Bar</option>
+                                                <option value="bag">Bag</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="cancel-match-btn" class="btn btn-secondary">Cancel</button>
+                        <button id="save-match-btn" class="btn btn-primary">Save Match</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New Brand Modal -->
+            <div id="brand-modal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Add New Brand</h3>
+                        <button class="modal-close">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="new-brand-name">Brand Name:</label>
+                            <input type="text" id="new-brand-name" placeholder="Enter brand name">
+                        </div>
+                        <div class="form-group">
+                            <label for="new-brand-description">Description:</label>
+                            <textarea id="new-brand-description" placeholder="Optional description"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="new-brand-website">Website:</label>
+                            <input type="url" id="new-brand-website" placeholder="https://...">
+                        </div>
+                        <div class="form-group">
+                            <label for="new-brand-country">Country:</label>
+                            <input type="text" id="new-brand-country" placeholder="e.g., Germany">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="cancel-brand-btn" class="btn btn-secondary">Cancel</button>
+                        <button id="save-brand-btn" class="btn btn-primary">Save Brand</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New Category Modal -->
+            <div id="category-modal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Add New Category</h3>
+                        <button class="modal-close">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="new-category-name">Category Name:</label>
+                            <input type="text" id="new-category-name" placeholder="Enter category name">
+                        </div>
+                        <div class="form-group">
+                            <label for="new-category-parent">Parent Category:</label>
+                            <select id="new-category-parent">
+                                <option value="">No Parent (Top Level)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="new-category-description">Description:</label>
+                            <textarea id="new-category-description" placeholder="Optional description"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="new-category-color">Color:</label>
+                                <input type="color" id="new-category-color" value="#4CAF50">
+                            </div>
+                            <div class="form-group">
+                                <label for="new-category-icon">Icon:</label>
+                                <input type="text" id="new-category-icon" placeholder="🍽️">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="cancel-category-btn" class="btn btn-secondary">Cancel</button>
+                        <button id="save-category-btn" class="btn btn-primary">Save Category</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Item Matching System - Powered by <a href="https://llamaocr.com/" target="_blank">Llama OCR</a></p>
+        </footer>
+    </div>
+
+    <script src="matching.js"></script>
+</body>
+</html> 

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt Processor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧾 Receipt Processor</h1>
+            <p>Upload your supermarket receipt to extract and categorize items</p>
+            <nav>
+                <a href="/receipts" class="nav-link">📋 Receipts List</a>
+                <a href="/matching" class="nav-link">🔗 Item Matching</a>
+            </nav>
+        </header>
+
+        <main>
+            <!-- Upload Section -->
+            <section id="upload-section" class="upload-section">
+                <div class="upload-area" id="upload-area">
+                    <div class="upload-content">
+                        <div class="upload-icon">📷</div>
+                        <h3>Upload Receipt</h3>
+                        <p>Drag and drop your receipt image here, or click to browse</p>
+                        <input type="file" id="file-input" accept="image/*" hidden>
+                        <button type="button" id="browse-btn" class="btn btn-primary">Choose File</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Processing Section -->
+            <section id="processing-section" class="processing-section" style="display: none;">
+                <div class="processing-content">
+                    <div class="spinner"></div>
+                    <h3>Processing Receipt...</h3>
+                    <p>Please wait while we extract information from your receipt</p>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section id="results-section" class="results-section" style="display: none;">
+                <div class="results-header">
+                    <h2>Receipt Results</h2>
+                    <button id="new-receipt-btn" class="btn btn-secondary">Process Another Receipt</button>
+                </div>
+
+                <div class="results-content">
+                    <!-- Image and Summary Side by Side -->
+                    <div class="results-main">
+                        <div class="image-section">
+                            <h3>Uploaded Receipt</h3>
+                            <div class="receipt-image-container">
+                                <img id="receipt-image" src="" alt="Uploaded receipt" class="receipt-image">
+                            </div>
+                        </div>
+
+                        <div class="summary-section">
+                            <h3>Receipt Summary</h3>
+                            <div class="receipt-summary">
+                                <div class="summary-item">
+                                    <span class="label">Total Amount:</span>
+                                    <span class="value" id="receipt-total">€0.00</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span class="label">Date:</span>
+                                    <span class="value" id="receipt-date">Not found</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span class="label">Items Found:</span>
+                                    <span class="value" id="items-count">0</span>
+                                </div>
+                                <div class="summary-item" id="store-info-item" style="display: none;">
+                                    <span class="label">Store:</span>
+                                    <span class="value" id="store-name">Not found</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Items Table -->
+                    <div class="items-container">
+                        <h3>Extracted Items</h3>
+                        <div class="items-table-container">
+                            <table class="items-table">
+                                <thead>
+                                    <tr>
+                                        <th>Code</th>
+                                        <th>Product Name</th>
+                                        <th>Quantity</th>
+                                        <th>Unit Price</th>
+                                        <th>Total</th>
+                                        <th>Brand</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="items-table-body">
+                                    <!-- Items will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Store and Payment Information -->
+                    <div class="details-container">
+                        <div class="store-details" id="store-details" style="display: none;">
+                            <h3>Store Information</h3>
+                            <div id="store-details-content"></div>
+                        </div>
+                        
+                        <div class="payment-details" id="payment-details" style="display: none;">
+                            <h3>Payment Information</h3>
+                            <div id="payment-details-content"></div>
+                        </div>
+                    </div>
+
+                    <!-- Raw OCR Data (for debugging) -->
+                    <details class="debug-section">
+                        <summary>Raw OCR Data (Debug)</summary>
+                        <pre id="raw-markdown" class="raw-data"></pre>
+                    </details>
+                </div>
+            </section>
+
+            <!-- Error Section -->
+            <section id="error-section" class="error-section" style="display: none;">
+                <div class="error-content">
+                    <div class="error-icon">❌</div>
+                    <h3>Processing Error</h3>
+                    <p id="error-message">An error occurred while processing your receipt.</p>
+                    <button id="retry-btn" class="btn btn-primary">Try Again</button>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Powered by <a href="https://llamaocr.com/" target="_blank">Llama OCR</a> and <a href="https://together.ai/" target="_blank">Together AI</a></p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipts List - Receipt Processor</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .receipts-list {
+            margin-top: 2rem;
+        }
+        
+        .receipt-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .receipt-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .receipt-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+        
+        .receipt-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+        
+        .receipt-id {
+            background: #f0f0f0;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .receipt-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .detail-label {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 0.25rem;
+        }
+        
+        .detail-value {
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .receipt-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+        
+        .btn-view {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
+        }
+        
+        .btn-view:hover {
+            background: #0056b3;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+        
+        .empty-state h3 {
+            margin-bottom: 1rem;
+        }
+        
+        .stats-bar {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #007bff;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📋 Receipts List</h1>
+            <p>All processed receipts and their details</p>
+            <nav>
+                <a href="/" class="nav-link">🏠 Home</a>
+                <a href="/matching" class="nav-link">🔗 Item Matching</a>
+            </nav>
+        </header>
+
+        <main>
+            <!-- Stats Bar -->
+            <div class="stats-bar">
+                <div class="stats-grid" id="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="total-receipts">-</div>
+                        <div class="stat-label">Total Receipts</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="total-items">-</div>
+                        <div class="stat-label">Total Items</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="total-amount">-</div>
+                        <div class="stat-label">Total Amount</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="avg-receipt">-</div>
+                        <div class="stat-label">Avg per Receipt</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Receipts List -->
+            <div class="receipts-list" id="receipts-list">
+                <div class="loading">Loading receipts...</div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Powered by <a href="https://llamaocr.com/" target="_blank">Llama OCR</a> and <a href="https://together.ai/" target="_blank">Together AI</a></p>
+        </footer>
+    </div>
+
+    <script>
+        // Load receipts list
+        async function loadReceipts() {
+            try {
+                const response = await fetch('/api/receipts/list');
+                const data = await response.json();
+                
+                if (data.receipts && data.receipts.length > 0) {
+                    displayReceipts(data.receipts);
+                    updateStats(data.receipts);
+                } else {
+                    displayEmptyState();
+                }
+            } catch (error) {
+                console.error('Error loading receipts:', error);
+                document.getElementById('receipts-list').innerHTML = 
+                    '<div class="error">Error loading receipts. Please try again.</div>';
+            }
+        }
+
+        function displayReceipts(receipts) {
+            const container = document.getElementById('receipts-list');
+            container.innerHTML = receipts.map(receipt => `
+                <div class="receipt-card">
+                    <div class="receipt-header">
+                        <h3 class="receipt-title">
+                            ${receipt.store_name || 'Unknown Store'}
+                        </h3>
+                        <span class="receipt-id">#${receipt.id}</span>
+                    </div>
+                    
+                    <div class="receipt-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Date</span>
+                            <span class="detail-value">${receipt.date || 'Unknown'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Time</span>
+                            <span class="detail-value">${receipt.time || 'Unknown'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Total Amount</span>
+                            <span class="detail-value">${formatCurrency(receipt.total_amount, receipt.currency)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Items</span>
+                            <span class="detail-value">${receipt.item_count || 0}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Payment Method</span>
+                            <span class="detail-value">${receipt.payment_method || 'Unknown'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Processed</span>
+                            <span class="detail-value">${formatDate(receipt.created_at)}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="receipt-actions">
+                        <a href="/receipt/${receipt.id}" class="btn-view">View Details</a>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function displayEmptyState() {
+            document.getElementById('receipts-list').innerHTML = `
+                <div class="empty-state">
+                    <h3>No receipts found</h3>
+                    <p>You haven't processed any receipts yet.</p>
+                    <a href="/" class="btn btn-primary">Process Your First Receipt</a>
+                </div>
+            `;
+        }
+
+        function updateStats(receipts) {
+            const totalReceipts = receipts.length;
+            const totalItems = receipts.reduce((sum, r) => sum + (r.item_count || 0), 0);
+            const totalAmount = receipts.reduce((sum, r) => sum + (r.total_amount || 0), 0);
+            const avgReceipt = totalReceipts > 0 ? totalAmount / totalReceipts : 0;
+
+            document.getElementById('total-receipts').textContent = totalReceipts;
+            document.getElementById('total-items').textContent = totalItems;
+            document.getElementById('total-amount').textContent = formatCurrency(totalAmount, 'EUR');
+            document.getElementById('avg-receipt').textContent = formatCurrency(avgReceipt, 'EUR');
+        }
+
+        function formatCurrency(amount, currency = 'EUR') {
+            if (amount === null || amount === undefined) return 'N/A';
+            return new Intl.NumberFormat('de-DE', {
+                style: 'currency',
+                currency: currency || 'EUR'
+            }).format(amount);
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'Unknown';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('de-DE', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Load receipts when page loads
+        document.addEventListener('DOMContentLoaded', loadReceipts);
+    </script>
+</body>
+</html> 
