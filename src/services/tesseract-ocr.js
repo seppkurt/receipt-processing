@@ -1,26 +1,64 @@
 const Tesseract = require('tesseract.js');
 const fs = require('fs');
 const path = require('path');
+const OCRServiceInterface = require('./ocr-interface');
 
-class TesseractOCRService {
-  constructor() {
+class TesseractOCRService extends OCRServiceInterface {
+  constructor(config = {}) {
+    super({
+      serviceName: 'tesseract',
+      timeout: 30000,
+      minConfidence: 0.3,
+      language: 'deu+eng',
+      ...config
+    });
+    
     console.log('🔍 Tesseract.js OCR service initialized (local processing)');
+    this.isInitialized = true; // Tesseract doesn't need initialization
   }
 
-  async processImage(imagePath) {
-    try {
-      console.log('🔍 Processing with Tesseract.js...');
-      console.log('📁 Image:', path.basename(imagePath));
+  async initialize(credentials) {
+    // Tesseract doesn't require credentials
+    this.isInitialized = true;
+    return true;
+  }
 
-      // Check if file exists
-      if (!fs.existsSync(imagePath)) {
-        throw new Error('Image file not found');
+  async processImage(imageInput, options = {}) {
+    if (!this.isInitialized) {
+      throw new Error('Tesseract service not initialized.');
+    }
+
+    try {
+      // Validate input
+      const validation = this.validateImage(imageInput);
+      if (!validation.valid) {
+        throw new Error(`Image validation failed: ${validation.error}`);
+      }
+
+      console.log('🔍 Processing with Tesseract.js...');
+      
+      let imagePath;
+      let fileName = 'image.jpg';
+
+      if (typeof imageInput === 'string') {
+        // File path
+        imagePath = imageInput;
+        fileName = path.basename(imageInput);
+        console.log('📁 Image:', fileName);
+      } else if (Buffer.isBuffer(imageInput)) {
+        // For buffers, we need to save to temp file
+        const tempPath = path.join(__dirname, '../../temp_image.jpg');
+        fs.writeFileSync(tempPath, imageInput);
+        imagePath = tempPath;
+        console.log('📁 Image: Buffer input (saved to temp file)');
+      } else {
+        throw new Error('Invalid image input type');
       }
 
       // Process with Tesseract
       const result = await Tesseract.recognize(
         imagePath,
-        'deu+eng', // German + English
+        options.language || this.config.language,
         {
           logger: m => {
             if (m.status === 'recognizing text') {
@@ -45,7 +83,8 @@ class TesseractOCRService {
           timestamp: new Date().toISOString(),
           service: 'Tesseract.js',
           model: 'Local OCR',
-          language: 'German + English'
+          language: options.language || this.config.language,
+          fileName: fileName
         }
       };
 
@@ -177,6 +216,33 @@ class TesseractOCRService {
       console.error('❌ Tesseract custom processing error:', error.message);
       throw error;
     }
+  }
+
+  /**
+   * Get service status and capabilities
+   * @returns {Object} - Service information
+   */
+  getServiceInfo() {
+    return {
+      name: this.config.serviceName,
+      type: 'local',
+      isInitialized: this.isInitialized,
+      supportsConfidence: true,
+      supportsLanguages: ['eng', 'deu', 'fra', 'spa', 'ita', 'por', 'rus', 'chi_sim', 'chi_tra', 'jpn', 'kor'],
+      maxFileSize: 50 * 1024 * 1024, // 50MB (local processing)
+      supportedFormats: ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp'],
+      pricing: {
+        freeTier: 'Unlimited',
+        costPerRequest: 0 // Free
+      },
+      features: [
+        'Local processing (no network required)',
+        'Privacy-friendly',
+        'Multiple language support',
+        'Confidence scoring',
+        'Custom configuration options'
+      ]
+    };
   }
 }
 

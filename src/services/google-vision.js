@@ -1,37 +1,83 @@
 const vision = require('@google-cloud/vision');
 const fs = require('fs');
 const path = require('path');
+const OCRServiceInterface = require('./ocr-interface');
 
-class GoogleVisionService {
-  constructor() {
-    // Initialize the client with credentials from google_keys directory
-    const credentialsPath = path.join(__dirname, '../../google_keys/receipt-processing-465420-1d034c991c6b.json');
+class GoogleVisionService extends OCRServiceInterface {
+  constructor(config = {}) {
+    super({
+      serviceName: 'google',
+      timeout: 30000,
+      minConfidence: 0.3,
+      language: 'deu',
+      ...config
+    });
     
-    if (fs.existsSync(credentialsPath)) {
-      this.client = new vision.ImageAnnotatorClient({
-        keyFilename: credentialsPath
-      });
-      console.log('🔍 Google Cloud Vision service initialized with credentials from:', credentialsPath);
-    } else {
-      // Fallback to environment variable if credentials file not found
-      this.client = new vision.ImageAnnotatorClient();
-      console.log('🔍 Google Cloud Vision service initialized (using environment credentials)');
+    this.client = null;
+  }
+
+  async initialize(credentials) {
+    try {
+      let credentialsPath;
+      
+      if (credentials.keyFilename) {
+        credentialsPath = credentials.keyFilename;
+      } else {
+        // Default to google_keys directory
+        credentialsPath = path.join(__dirname, '../../google_keys/receipt-processing-465420-1d034c991c6b.json');
+      }
+      
+      if (fs.existsSync(credentialsPath)) {
+        this.client = new vision.ImageAnnotatorClient({
+          keyFilename: credentialsPath
+        });
+        console.log('🔍 Google Cloud Vision service initialized with credentials from:', credentialsPath);
+      } else {
+        // Fallback to environment variable if credentials file not found
+        this.client = new vision.ImageAnnotatorClient();
+        console.log('🔍 Google Cloud Vision service initialized (using environment credentials)');
+      }
+      
+      this.isInitialized = true;
+      return true;
+      
+    } catch (error) {
+      console.error('❌ Google Vision initialization failed:', error.message);
+      this.isInitialized = false;
+      return false;
     }
   }
 
-  async processImage(imagePath) {
-    try {
-      console.log('🔍 Processing with Google Cloud Vision...');
-      console.log('📁 Image:', path.basename(imagePath));
+  async processImage(imageInput, options = {}) {
+    if (!this.isInitialized) {
+      throw new Error('Google Cloud Vision service not initialized. Call initialize() first.');
+    }
 
-      // Check if file exists
-      if (!fs.existsSync(imagePath)) {
-        throw new Error('Image file not found');
+    try {
+      // Validate input
+      const validation = this.validateImage(imageInput);
+      if (!validation.valid) {
+        throw new Error(`Image validation failed: ${validation.error}`);
       }
 
-      // Read the image file
-      const imageBuffer = fs.readFileSync(imagePath);
+      console.log('🔍 Processing with Google Cloud Vision...');
       
+      let imageBuffer;
+      let fileName = 'image.jpg';
+
+      if (typeof imageInput === 'string') {
+        // File path
+        imageBuffer = fs.readFileSync(imageInput);
+        fileName = path.basename(imageInput);
+        console.log('📁 Image:', fileName);
+      } else if (Buffer.isBuffer(imageInput)) {
+        // Buffer
+        imageBuffer = imageInput;
+        console.log('📁 Image: Buffer input');
+      } else {
+        throw new Error('Invalid image input type');
+      }
+
       // Perform text detection
       const [result] = await this.client.textDetection(imageBuffer);
       const detections = result.textAnnotations;
@@ -41,7 +87,13 @@ class GoogleVisionService {
         return {
           text: '',
           confidence: 0,
-          error: 'No text detected'
+          error: 'No text detected',
+          processing_info: {
+            timestamp: new Date().toISOString(),
+            service: 'Google Cloud Vision',
+            model: 'OCR API v1',
+            fileName: fileName
+          }
         };
       }
 
@@ -63,11 +115,12 @@ class GoogleVisionService {
       return {
         text: fullText,
         confidence: avgConfidence,
-        raw_detections: detections,
+        raw_result: detections,
         processing_info: {
           timestamp: new Date().toISOString(),
           service: 'Google Cloud Vision',
-          model: 'OCR API v1'
+          model: 'OCR API v1',
+          fileName: fileName
         }
       };
 
@@ -145,6 +198,33 @@ class GoogleVisionService {
     // Simple heuristic: lines with prices are likely items
     const pricePattern = /\d+[,.]?\d*\s*€/;
     return pricePattern.test(line) && line.length > 5;
+  }
+
+  /**
+   * Get service status and capabilities
+   * @returns {Object} - Service information
+   */
+  getServiceInfo() {
+    return {
+      name: this.config.serviceName,
+      type: 'cloud',
+      isInitialized: this.isInitialized,
+      supportsConfidence: true,
+      supportsLanguages: ['deu', 'eng', 'fra', 'spa', 'ita', 'por', 'rus', 'chi', 'jpn', 'kor'],
+      maxFileSize: 10 * 1024 * 1024, // 10MB
+      supportedFormats: ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.pdf'],
+      pricing: {
+        freeTier: '1000 requests/month',
+        costPerRequest: 0.0015 // $1.50 per 1000 requests
+      },
+      features: [
+        'High accuracy text detection',
+        'Multiple language support',
+        'Confidence scoring',
+        'PDF support',
+        'Document text detection'
+      ]
+    };
   }
 }
 
