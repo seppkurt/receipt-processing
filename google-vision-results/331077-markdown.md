@@ -1,0 +1,57 @@
+# Receipt
+
+## Store Information
+
+* **dm-drogerie markt**
+
+* 70178 Stuttgart
+## Store Information
+
+* **Hauptstätter Straße 149**
+
+* 0711/62007023
+## Date and Time
+
+* **24.11.2012 17:16 1478/2 229842/11 5492**
+
+* EUR
+* got2b happy hour Haarspray
+## Total
+
+* **Listerine Total Care Msp.**
+
+* Das gesunde Plus Wundspray
+* Men Exp. Vita Lift 5 Feucht.
+* 3.45 1
+* 4,25 1
+* 3,95 1
+* 9.95 1
+* Dresd. Essenz Ges. Bad Entschlck
+* 2 x
+* 0,95
+* 1,90 1
+* Dresdn. Essenz Ges. Bad Entspan
+* 2 x
+* 0,95
+* 1.90 1
+* Dresdn. Essenz Ges.Bad Muskel
+* 3 x 0,95
+* 2,85 1
+* Impresan Hyg. Pumpspray 250ml
+* 3.45 1
+## Total
+
+* **Zwischensumme**
+
+* 31,70
+* BAR EUR
+* -35.70
+* Rückgeld EUR
+* 4.00
+* MwSt-Satz Brutto Netto
+* MwSt
+* 1=19,00%
+* 31.70 26,64
+* 5.06
+* Für diesen Einkauf hatten Sie
+* 31 PAYBACK Punkte erhalten

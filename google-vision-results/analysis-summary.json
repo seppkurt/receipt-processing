@@ -1,0 +1,55 @@
+{
+  "total_images": 3,
+  "processed_images": 3,
+  "failed_images": 0,
+  "total_text_length": 2681,
+  "average_confidence": 0,
+  "results": [
+    {
+      "image": "dm_1.jpg",
+      "text_length": 1009,
+      "confidence": 0,
+      "processing_info": {
+        "timestamp": "2025-07-10T07:28:13.013Z",
+        "service": "Google Cloud Vision",
+        "model": "OCR API v1"
+      },
+      "files": {
+        "raw_text": "dm_1-raw.txt",
+        "markdown": "dm_1-markdown.md",
+        "detailed": "dm_1-detailed.json"
+      }
+    },
+    {
+      "image": "edeka_1.jpg",
+      "text_length": 830,
+      "confidence": 0,
+      "processing_info": {
+        "timestamp": "2025-07-10T07:28:15.054Z",
+        "service": "Google Cloud Vision",
+        "model": "OCR API v1"
+      },
+      "files": {
+        "raw_text": "edeka_1-raw.txt",
+        "markdown": "edeka_1-markdown.md",
+        "detailed": "edeka_1-detailed.json"
+      }
+    },
+    {
+      "image": "edeka_2.jpg",
+      "text_length": 842,
+      "confidence": 0,
+      "processing_info": {
+        "timestamp": "2025-07-10T07:28:18.092Z",
+        "service": "Google Cloud Vision",
+        "model": "OCR API v1"
+      },
+      "files": {
+        "raw_text": "edeka_2-raw.txt",
+        "markdown": "edeka_2-markdown.md",
+        "detailed": "edeka_2-detailed.json"
+      }
+    }
+  ],
+  "average_text_length": 893.6666666666666
+}
