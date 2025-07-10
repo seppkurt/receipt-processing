@@ -15,6 +15,7 @@ yarn-error.log*
 api-keys.txt
 secrets.json
 *.key
+google_keys/
 
 # Database files
 *.db
